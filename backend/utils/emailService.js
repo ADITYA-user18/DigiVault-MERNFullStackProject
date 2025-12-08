@@ -5,11 +5,16 @@ dotenv.config();
 
 // Shared Transporter Configuration
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,            // Use 587 (TLS) instead of 465 (SSL)
+  secure: false,        // Must be false for port 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Fixes some cloud SSL certificate issues
+  }
 });
 
 // 1. Existing OTP Function
