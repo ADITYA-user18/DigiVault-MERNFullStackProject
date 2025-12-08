@@ -7,6 +7,7 @@ import Upload from "../pages/Upload";
 import GetFiles from "../pages/GetFiles";
 import Dashboard from "../pages/Dashboard";
 import SharedFileView from "../pages/SharedFileView"; // Import the new public view
+import ProtectedRoute from "../components/ProtectedRoute"; // Import ProtectedRoute
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -35,9 +36,9 @@ function App() {
           <Route path="/share/:token" element={<SharedFileView />} />
 
           {/* User Routes (Protected) */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/getfiles" element={<GetFiles />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+          <Route path="/getfiles" element={<ProtectedRoute><GetFiles /></ProtectedRoute>} />
       </Routes>
      
       <ToastContainer position="top-right" autoClose={3000} />

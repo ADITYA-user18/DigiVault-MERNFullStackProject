@@ -33,10 +33,15 @@ export const AuthContextProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post("/api/user/logout");
+      localStorage.removeItem("token"); // <--- Clear the token!
       setUser(null);
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);
+      // Optional: Force logout even if API fails
+      localStorage.removeItem("token");
+      setUser(null);
+      navigate("/login");
     }
   };
 
