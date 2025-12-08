@@ -14,30 +14,34 @@ import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
 ConnectDB();
-setupCronJob(); 
+setupCronJob();
 console.log("✅ Expiry Scheduler Initialized");
 
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use(cors({  origin: [
-    "http://localhost:5173",                      // Local testing
-    "digi-vault-mern-full-stack-project.vercel.app"       // <-- PASTE YOUR VERCEL URL HERE
-  ],credentials: true}));
+app.use(cors({
+    origin: [
+        process.env.FRONTEND_URL,                      // Local testing
+        "https://digi-vault-mern-full-stack-project.vercel.app"       // <-- PASTE YOUR VERCEL URL HERE
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 app.use(express.json());
 
 //routes
-app.use('/api/user',UserRouter)
-app.use('/api/file',FileUploadRoutes)
-app.use('/api/share',ShareRoutes)
+app.use('/api/user', UserRouter)
+app.use('/api/file', FileUploadRoutes)
+app.use('/api/share', ShareRoutes)
 app.use("/api/ai", aiRoutes);
 
 
 app.get("/", (req, res) => {
-  res.send("API is running successfully! 🚀");
+    res.send("API is running successfully! 🚀");
 });
 
 
-const port = process.env.PORT 
-app.listen(port,()=>{
+const port = process.env.PORT
+app.listen(port, () => {
     console.log(`server running on port ${port}`)
 })
