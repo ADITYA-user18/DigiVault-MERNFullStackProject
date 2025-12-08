@@ -19,7 +19,10 @@ console.log("✅ Expiry Scheduler Initialized");
 
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use(cors({origin:process.env.FRONTEND_URL,credentials: true}));
+app.use(cors({  origin: [
+    "http://localhost:5173",                      // Local testing
+    "digi-vault-mern-full-stack-project.vercel.app"       // <-- PASTE YOUR VERCEL URL HERE
+  ],credentials: true}));
 app.use(express.json());
 
 //routes
