@@ -12,6 +12,7 @@ import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 
 const SECRET_KEY = process.env.SECRET_KEY;
+const isProd = process.env.NODE_ENV === "production";
 
 if (!SECRET_KEY) {
   console.error("SECRET_KEY is not defined in .env!");
@@ -60,6 +61,7 @@ export const sendOtp = async (req, res) => {
     const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Save ephemeral data
     await OtpModel.findOneAndUpdate(
       { email },
       {
@@ -70,7 +72,13 @@ export const sendOtp = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    await sendOtpEmail(email, otp);
+    // Send Email (and check success)
+    const isSent = await sendOtpEmail(email, otp);
+    
+    if (!isSent) {
+      return res.status(500).json({ success: false, message: "Failed to send email. Check server logs." });
+    }
+
     res.json({ success: true, message: "OTP sent to email!" });
   } catch (error) {
     console.error("Send OTP error:", error);
@@ -183,7 +191,13 @@ export const loginSendOtp = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    await sendOtpEmail(email, otp);
+    // Send Email (and check success)
+    const isSent = await sendOtpEmail(email, otp);
+    
+    if (!isSent) {
+      return res.status(500).json({ success: false, message: "Failed to send email. Check logs." });
+    }
+
     res.json({ success: true, message: "OTP sent for login!" });
   } catch (error) {
     console.error("Login OTP send error:", error);
