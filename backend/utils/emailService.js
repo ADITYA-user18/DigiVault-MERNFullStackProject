@@ -4,18 +4,18 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com", // Brevo's SMTP Server
-  port: 587,                    // Standard Secure Port
-  secure: false,                // False for 587
+  host: "smtp-relay.brevo.com",
+  port: 587,             // Back to standard TLS port
+  secure: false,         // Must be false for 587
   auth: {
-    user: process.env.EMAIL_USER, // Your Brevo Login Email
-    pass: process.env.EMAIL_PASS, // Your Brevo SMTP Key
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-  // Critical for Cloud Servers:
   tls: {
     rejectUnauthorized: false
   },
-  connectionTimeout: 10000 // 10 seconds timeout
+  family: 4,             // <--- 🔴 THE MAGIC FIX: Forces IPv4
+  connectionTimeout: 10000 
 });
 
 export const sendOtpEmail = async (email, otp) => {
