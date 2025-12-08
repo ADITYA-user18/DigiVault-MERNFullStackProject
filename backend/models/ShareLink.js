@@ -39,6 +39,6 @@ const shareLinkSchema = new mongoose.Schema({
 });
 
 // Index for fast lookups by token
-shareLinkSchema.index({ token: 1 });
+// shareLinkSchema.index({ token: 1 });
 
 export default mongoose.model("ShareLink", shareLinkSchema);

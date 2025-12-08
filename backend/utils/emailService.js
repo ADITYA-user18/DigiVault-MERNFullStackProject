@@ -1,42 +1,50 @@
-import axios from "axios";
+import nodemailer from 'nodemailer';
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const BREVO_URL = "https://api.brevo.com/v3/smtp/email";
-
-
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const sendExpiryAlert = async (email, userName, files) => {
   try {
-    const fileListHtml = files.map(f => `<li><strong>${f.filename}</strong></li>`).join("");
+    // UPDATED: Now shows filename AND the expiry date
+    const fileListHtml = files.map(f => 
+      `<li style="margin-bottom: 5px;">
+         <strong>${f.filename}</strong> 
+         <span style="color: #dc2626;">(Expires: ${new Date(f.expiryDate).toLocaleDateString()})</span>
+       </li>`
+    ).join("");
 
-    await axios.post(
-      BREVO_URL,
-      {
-        sender: { name: "DigiVault Alerts", email: process.env.EMAIL_USER },
-        to: [{ email: email }],
-        subject: "⚠️ Documents Expiring Soon",
-        htmlContent: `
-          <div>
-            <h3>Hello ${userName},</h3>
-            <p>These documents are expiring soon:</p>
-            <ul>${fileListHtml}</ul>
-            <a href="https://your-frontend-link.com">Go to Dashboard</a>
-          </div>
-        `
-      },
-      {
-        headers: {
-          "api-key": process.env.EMAIL_PASS,
-          "Content-Type": "application/json",
-          "accept": "application/json"
-        },
-      }
-    );
+    const mailOptions = {
+      from: `"DigiVault Alerts" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `⚠️ Action Required: ${files.length} Documents Expiring Soon`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h3>Hello ${userName},</h3>
+          <p>We noticed the following documents in your vault are expiring soon:</p>
+          <ul>${fileListHtml}</ul>
+          <p>Please renew them or update your records.</p>
+          <br/>
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard" 
+             style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+             Go to Dashboard
+          </a>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Expiry Alert sent: %s", info.messageId);
     return true;
   } catch (error) {
-    console.error("Expiry Email Error:", error.response?.data || error.message);
+    console.error("Expiry Email Error:", error);
     return false;
   }
 };

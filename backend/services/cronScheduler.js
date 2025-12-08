@@ -1,29 +1,32 @@
 import cron from "node-cron";
-import  FileModel from '../models/File.js'
-import User from '../models/User.js'
-import { sendExpiryAlert } from '../utils/emailService.js'
+import FileModel from "../models/File.js";
+import User from "../models/User.js";
+import { sendExpiryAlert } from "../utils/emailService.js";
+
 const setupCronJob = () => {
-  // Schedule: Run every day at 9:00 AM
-  // "0 9 * * *"
-  
-  // For TESTING right now, you can change this to "* * * * *" (runs every minute)
+  // Run every minute for testing
   cron.schedule("0 9 * * *", async () => {
-    console.log("⏳ [CRON] Checking for expiring documents...");
+    console.log("--- ⏳ CRON STARTED ---");
 
     try {
       const today = new Date();
       
-      // We look for files expiring exactly 3 days from now
-      // (You can duplicate this logic to check for 7 days or 1 day as well)
+      // FIX: Changed from 3 to 2 to match your "Expires in 2d" file
+      const daysFromNow = 2; 
+
       const targetDateStart = new Date(today);
-      targetDateStart.setDate(today.getDate() + 3);
+      targetDateStart.setDate(today.getDate() + daysFromNow);
       targetDateStart.setHours(0, 0, 0, 0);
 
       const targetDateEnd = new Date(today);
-      targetDateEnd.setDate(today.getDate() + 3);
+      targetDateEnd.setDate(today.getDate() + daysFromNow);
       targetDateEnd.setHours(23, 59, 59, 999);
 
-      // 1. Find Vaults containing matching files
+      console.log(`🔎 Looking for files expiring (+${daysFromNow} days) between:`);
+      console.log(`   Start: ${targetDateStart.toISOString()}`);
+      console.log(`   End:   ${targetDateEnd.toISOString()}`);
+
+      // 1. Find Vaults
       const vaults = await FileModel.find({
         "files.expiryDate": {
           $gte: targetDateStart,
@@ -31,14 +34,15 @@ const setupCronJob = () => {
         }
       });
 
-      if (vaults.length > 0) {
-        console.log(`Found ${vaults.length} users with documents expiring in 3 days.`);
+      console.log(`📂 Found ${vaults.length} vaults with matching files.`);
+
+      if (vaults.length === 0) {
+        console.log("❌ No files found. Dates don't match exactly.");
+        return;
       }
 
-      // 2. Process each vault
+      // 2. Process
       for (const vault of vaults) {
-        
-        // Filter the specific files triggering the alert
         const expiringFiles = vault.files.filter(file => {
             if (!file.expiryDate) return false;
             const d = new Date(file.expiryDate);
@@ -46,12 +50,12 @@ const setupCronJob = () => {
         });
 
         if (expiringFiles.length > 0) {
-          // 3. Fetch User Email
           const user = await User.findById(vault.userId);
           
           if (user && user.email) {
-            // 4. Send Email using your Util
+            console.log(`   📧 Sending email to ${user.email}...`);
             await sendExpiryAlert(user.email, user.name, expiringFiles);
+            console.log("   ✅ Email Sent Successfully!");
           }
         }
       }
@@ -59,6 +63,7 @@ const setupCronJob = () => {
     } catch (error) {
       console.error("❌ Cron Job Error:", error);
     }
+    console.log("--- 🏁 CRON FINISHED ---\n");
   });
 };
 
