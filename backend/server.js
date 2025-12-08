@@ -32,6 +32,10 @@ app.use('/api/share',ShareRoutes)
 app.use("/api/ai", aiRoutes);
 
 
+app.get((req,res)=>{
+    console.log('Backend Hitted')
+});
+
 
 
 const port = process.env.PORT 
