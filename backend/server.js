@@ -10,6 +10,7 @@ import FileUploadRoutes from './routes/FilesRoute.js'
 import ShareRoutes from './routes/ShareRoute.js'
 import setupCronJob from "./services/cronScheduler.js";
 import aiRoutes from "./routes/aiRoutes.js";
+const port = process.env.PORT
 
 
 const app = express();
@@ -41,7 +42,7 @@ app.get("/", (req, res) => {
 });
 
 
-const port = process.env.PORT
+
 app.listen(port, () => {
     console.log(`server running on port ${port}`)
 })
