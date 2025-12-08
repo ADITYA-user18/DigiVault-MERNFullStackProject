@@ -12,14 +12,13 @@ import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 
 const SECRET_KEY = process.env.SECRET_KEY;
-const isProd = process.env.NODE_ENV === "production";
 
 if (!SECRET_KEY) {
   console.error("SECRET_KEY is not defined in .env!");
   process.exit(1);
 }
 
-// 🔐 JWT GENERATOR UTILITY
+// 🔐 JWT GENERATOR UTILITY (DEPLOYMENT SAFE VERSION)
 const generateTokenAndSetCookie = (res, user) => {
   const token = jwt.sign(
     {
@@ -30,11 +29,14 @@ const generateTokenAndSetCookie = (res, user) => {
     { expiresIn: "7d" }
   );
 
+  // ⚠️ CRITICAL DEPLOYMENT SETTINGS
+  // We force 'secure: true' and 'sameSite: none' because Vercel (Frontend)
+  // and Render (Backend) are on different domains using HTTPS.
   res.cookie("token", token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,      // Prevents XSS attacks
+    secure: true,        // REQUIRED for Vercel/Render (HTTPS)
+    sameSite: "none",    // REQUIRED for Cross-Origin cookies
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
     path: "/",
   });
 
@@ -190,7 +192,7 @@ export const loginSendOtp = async (req, res) => {
 };
 
 /**
- * 5️⃣ LOGIN - VERIFY OTP (UPDATED FOR 2FA)
+ * 5️⃣ LOGIN - VERIFY OTP (UPDATED FOR RECOVERY)
  */
 export const loginVerifyOtp = async (req, res) => {
   try {
@@ -215,8 +217,7 @@ export const loginVerifyOtp = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: "User record missing" });
 
     // --- RECOVERY LOGIC ---
-    // We purposefully REMOVED the "if (user.isTwoFactorEnabled)" check here.
-    // If they verify their email, they are allowed in, effectively bypassing Google Auth if lost.
+    // If the user verifies email OTP, we bypass 2FA (Recovery Mode).
     
     const token = generateTokenAndSetCookie(res, user);
 
@@ -260,8 +261,8 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: true,     // Force Secure for deployment
+      sameSite: "none", // Force None for deployment
       path: "/",
     });
     res.json({ success: true, message: "Logged out successfully" });
