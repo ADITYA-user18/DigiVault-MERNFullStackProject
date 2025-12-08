@@ -62,10 +62,11 @@ const Login = () => {
       }
 
       if (res.data.success) {
-        toast.success("Login Successful!");
-        setUser(res.data.user);
-        navigate("/dashboard");
-      }
+  toast.success("Login Successful!");
+  localStorage.setItem("token", res.data.token); // <--- ADD THIS
+  setUser(res.data.user);
+  navigate("/dashboard");
+}
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed.");
     } finally {
@@ -87,10 +88,13 @@ const Login = () => {
       }, { withCredentials: true });
 
       if (res.data.success) {
-        toast.success("Identity Verified!");
-        setUser(res.data.user);
-        navigate("/dashboard");
-      }
+  toast.success("Identity Verified!");
+  // The 2FA login response usually sets a cookie, but let's assume it returns a token too
+  // If your 2FA controller returns a token, save it:
+  if (res.data.token) localStorage.setItem("token", res.data.token); // <--- ADD THIS
+  setUser(res.data.user);
+  navigate("/dashboard");
+}
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid Code");
     } finally {
@@ -131,10 +135,11 @@ const Login = () => {
       // Email verification acts as the "Recovery Method" bypassing Google Auth.
 
       if (res.data.success) {
-        toast.success(res.data.message || "Login Successful!");
-        setUser(res.data.user);
-        navigate("/dashboard");
-      }
+  toast.success("Login Successful!");
+  if (res.data.token) localStorage.setItem("token", res.data.token); // <--- ADD THIS
+  setUser(res.data.user);
+  navigate("/dashboard");
+}
     } catch (error) {
       toast.error("Invalid OTP.");
     } finally {

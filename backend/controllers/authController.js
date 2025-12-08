@@ -355,6 +355,7 @@ export const loginVerify2FA = async (req, res) => {
       return res.json({ 
         success: true, 
         message: "Welcome back!", 
+        token,
         user: { id: user._id, email: user.email, name: user.name }
       });
     } else {
