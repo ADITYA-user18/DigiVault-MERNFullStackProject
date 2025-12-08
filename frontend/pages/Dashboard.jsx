@@ -7,8 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-// Import the 2FA Setup Modal
-import TwoFactorSetup from "../components/TwoFactorSetup";
+
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
@@ -16,8 +15,7 @@ const Dashboard = () => {
   const [logs, setLogs] = useState([]); 
   const [loading, setLoading] = useState(true);
   
-  // NEW: State to toggle 2FA Modal
-  const [show2FA, setShow2FA] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,14 +82,7 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            {/* NEW: ENABLE 2FA BUTTON */}
-            <button 
-                onClick={() => setShow2FA(true)}
-                className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all"
-            >
-                <Lock className="w-5 h-5 text-emerald-600" /> 
-                <span className="hidden sm:inline">2FA Security</span>
-            </button>
+
 
             <Link to="/upload" className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-lg hover:bg-gray-800 hover:-translate-y-1 transition-all">
                 <UploadCloud className="w-5 h-5" /> Quick Upload
@@ -250,12 +241,6 @@ const Dashboard = () => {
 
         </div>
       </div>
-
-      {/* NEW: RENDER 2FA MODAL IF ACTIVE */}
-      {show2FA && (
-        <TwoFactorSetup onClose={() => setShow2FA(false)} />
-      )}
-
     </div>
   );
 };

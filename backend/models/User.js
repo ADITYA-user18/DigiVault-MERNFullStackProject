@@ -5,15 +5,7 @@ const userSchema = new mongoose.Schema(
         name: { type: String },
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now },
-        isTwoFactorEnabled: {
-            type: Boolean,
-            default: false,
-        },
-        // 2. The Secret Key (Used to generate/verify codes)
-        twoFactorSecret: {
-            type: String,
-        },
+        createdAt: { type: Date, default: Date.now }
     },
 
     { timestamps: true }

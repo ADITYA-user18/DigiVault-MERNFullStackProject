@@ -3,7 +3,6 @@ import axios from "../services/axios";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-// 1. MOVED INPUTFIELD OUTSIDE THE COMPONENT
 const InputField = ({ label, icon, ...props }) => (
   <div className="mb-5">
     <label className="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">
@@ -13,7 +12,6 @@ const InputField = ({ label, icon, ...props }) => (
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
         {icon}
       </div>
-      {/* 2. Removed hardcoded onChange={handleChange}, relying on {...props} */}
       <input
         {...props}
         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
@@ -23,22 +21,20 @@ const InputField = ({ label, icon, ...props }) => (
 );
 
 const Signup = () => {
-  const [step, setStep] = useState("enter-email");
   const [loading, setLoading] = useState(false);
-  const { navigate, setUser } = useContext(AuthContext); // Removed BackendUrl as it's handled in axios instance
+  const { navigate, setUser } = useContext(AuthContext);
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
-    otp: "",
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const sendOtp = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!form.email || !form.name || !form.password)
@@ -47,48 +43,23 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`/api/user/send-otp`, {
-        email: form.email,
+      const res = await axios.post(`/api/user/register`, {
         name: form.name,
+        email: form.email,
         password: form.password,
       });
-      // Removed artificial delay for better UX, or keep it if desired
-      if (res.data.success) {
-        setStep("verify-otp");
-      }
-    } catch (error) {
-      console.log(error);
-      alert('Email Already Registered.. login to continue');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOtp = async (e) => {
-    e.preventDefault();
-
-    if (!form.otp) return alert("Enter the OTP!");
-
-    setLoading(true);
-
-    try {
-      const res = await axios.post(`/api/user/verify-otp`, {
-        email: form.email,
-        otp: form.otp.toString(),
-      });
-
-      console.log(res.data)
 
       if (res.data.success) {
-        alert("OTP verified! Account created.");
-        // localStorage.setItem("token", res.data.token); // REMOVED
+        alert("Account created successfully!");
+        if (res.data.token) {
+            localStorage.setItem("token", res.data.token);
+        }
         setUser(res.data.user);
-        navigate("/");
-      } else {
-        alert("Invalid OTP");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.log(error);
+      alert(error.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -106,97 +77,72 @@ const Signup = () => {
           </div>
 
           <h2 className="text-2xl font-bold text-gray-800">
-            {step === "enter-email" ? "Create an Account" : "Verify Your Email"}
+            Create an Account
           </h2>
 
           <p className="text-sm text-gray-500 mt-2">
-            {step === "enter-email"
-              ? "Join DigiVault to secure your files."
-              : `We sent a code to ${form.email}`}
+            Join DigiVault to secure your files.
           </p>
         </div>
 
-        {step === "enter-email" && (
-          <form onSubmit={sendOtp}>
-            <InputField
-              label="Full Name"
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange} /* 3. ADDED onChange HERE */
-              placeholder="John Doe"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              }
-            />
+        <form onSubmit={handleSignup}>
+          <InputField
+            label="Full Name"
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="John Doe"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            }
+          />
 
-            <InputField
-              label="Email Address"
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange} /* 3. ADDED onChange HERE */
-              placeholder="you@example.com"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              }
-            />
+          <InputField
+            label="Email Address"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="you@example.com"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            }
+          />
 
-            <InputField
-              label="Password"
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange} /* 3. ADDED onChange HERE */
-              placeholder="••••••••"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              }
-            />
+          <InputField
+            label="Password"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            }
+          />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? "Sending..." : "Create Account"}
-            </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transform transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+          </button>
 
-            <p className="text-center text-sm text-gray-500 mt-6">
-              Already have an account?{" "}
-              <Link to="/login" className="text-blue-600 font-semibold hover:underline">
-                Log in
-              </Link>
-            </p>
-          </form>
-        )}
-
-        {step === "verify-otp" && (
-          <div className="animate-fade-in-up">
-            <InputField
-              label="Enter OTP"
-              type="number"
-              name="otp"
-              placeholder="123456"
-              onChange={handleChange}
-              autoFocus
-            />
-
-            <button
-              onClick={verifyOtp}
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/30 transform transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-70 flex items-center justify-center"
-            >
-              {loading ? "Verifying..." : "Verify & Complete Signup"}
-            </button>
-          </div>
-        )}
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-600 font-semibold hover:underline">
+              Log in
+            </Link>
+          </p>
+        </form>
       </div>
     </div>
   );
