@@ -5,7 +5,6 @@ dotenv.config();
 
 // Shared Transporter Configuration
 const transporter = nodemailer.createTransport({
-const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,             // <--- CHANGE TO 587
   secure: false,         // <--- MUST BE FALSE FOR 587
