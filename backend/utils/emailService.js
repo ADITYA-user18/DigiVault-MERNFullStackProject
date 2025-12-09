@@ -32,7 +32,7 @@ export const sendExpiryAlert = async (email, userName, files) => {
           <ul>${fileListHtml}</ul>
           <p>Please renew them or update your records.</p>
           <br/>
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard" 
+          <a href="https://digi-vault-mern-full-stack-project.vercel.app/"}/dashboard" 
              style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
              Go to Dashboard
           </a>
