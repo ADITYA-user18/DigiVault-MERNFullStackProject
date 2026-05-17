@@ -396,4 +396,4 @@ const FileRow = ({ name, size, date, tag }) => (
   </div>
 );
 
-export default 
+export default Home;
